@@ -23,9 +23,9 @@
 
 class OC_User_drupal extends OC_User_Backend {
 	protected $drupal_db_host;
-	protected $drupal_db_name;
 	protected $drupal_db_user;
 	protected $drupal_db_password;
+	protected $drupal_db_name;
 	protected $drupal_db_prefix;
 	protected $db;
 	protected $db_conn;
@@ -33,9 +33,9 @@ class OC_User_drupal extends OC_User_Backend {
 	function __construct() {
 		$this->db_conn = false;
 		$this->drupal_db_host = OC_Appconfig::getValue('user_drupal', 'drupal_db_host','');
-		$this->drupal_db_name = OC_Appconfig::getValue('user_drupal', 'drupal_db_name','');
 		$this->drupal_db_user = OC_Appconfig::getValue('user_drupal', 'drupal_db_user','');
 		$this->drupal_db_password = OC_Appconfig::getValue('user_drupal', 'drupal_db_password','');
+		$this->drupal_db_name = OC_Appconfig::getValue('user_drupal', 'drupal_db_name','');
 		$this->drupal_db_prefix = OC_Appconfig::getValue('user_drupal', 'drupal_db_prefix','');
 
 		$errorlevel = error_reporting();
@@ -97,7 +97,7 @@ class OC_User_drupal extends OC_User_Backend {
 	 *
 	 * Get a list of all users
 	 */
-	public function getUsers() {
+	public function getUsers($search = '', $limit = NULL, $offset = NULL) {
 		$users = array();
 		if (!$this->db_conn) {
 			return $users;
