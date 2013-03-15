@@ -3,10 +3,10 @@
     <id>user_drupal</id>
     <name>Drupal user backend</name>
     <description>Authenticate users using Drupal Database</description>
-    <version>0.1</version>
+    <version>0.2</version>
     <licence>AGPL</licence>
-    <author>Sasa Tomic &lt;tomic80@gmail.com&gt;</author>
-    <require>4</require>
+    <author>Dmitry Govorov &lt;gdi@embedders.org&gt;</author>
+    <require>4.5</require>
     <types>
         <authentication/>
     </types>

@@ -25,7 +25,8 @@ $params = array(
 		'drupal_db_user',
 		'drupal_db_password',
 		'drupal_db_name',
-		'drupal_db_prefix'
+		'drupal_db_prefix',
+    'drupal_global_group'
 );
 
 if ($_POST) {
@@ -43,5 +44,6 @@ $tmpl->assign( 'drupal_db_user', OC_Appconfig::getValue('user_drupal', 'drupal_d
 $tmpl->assign( 'drupal_db_password', OC_Appconfig::getValue('user_drupal', 'drupal_db_password', ''));
 $tmpl->assign( 'drupal_db_name', OC_Appconfig::getValue('user_drupal', 'drupal_db_name', ''));
 $tmpl->assign( 'drupal_db_prefix', OC_Appconfig::getValue('user_drupal', 'drupal_db_prefix', ''));
+$tmpl->assign( 'drupal_global_group', OC_Appconfig::getValue('user_drupal', 'drupal_global_group', ''));
 
 return $tmpl->fetchPage();

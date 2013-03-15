@@ -32,11 +32,17 @@ class OC_User_drupal extends OC_User_Backend {
 
 	function __construct() {
 		$this->db_conn = false;
-		$this->drupal_db_host = OC_Appconfig::getValue('user_drupal', 'drupal_db_host','');
+		$this->drupal_db_host = OC_Appconfig::getValue('user_drupal', 'drupal_db_host','localhost');
 		$this->drupal_db_user = OC_Appconfig::getValue('user_drupal', 'drupal_db_user','');
 		$this->drupal_db_password = OC_Appconfig::getValue('user_drupal', 'drupal_db_password','');
 		$this->drupal_db_name = OC_Appconfig::getValue('user_drupal', 'drupal_db_name','');
 		$this->drupal_db_prefix = OC_Appconfig::getValue('user_drupal', 'drupal_db_prefix','');
+    $this->drupal_global_group = OC_Appconfig::getValue('user_drupal', 'drupal_global_group','drupal user');
+
+    if(empty($this->drupal_db_host)) $this->drupal_db_host=OC_Config::getValue( "dbhost", "localhost" );
+    if(empty($this->drupal_db_name)) $this->drupal_db_name=OC_Config::getValue( "dbname", "owncloud" );
+    if(empty($this->drupal_db_user)) $this->drupal_db_user=OC_Config::getValue( "dbuser", "" );
+    if(empty($this->drupal_db_password)) $this->drupal_db_password=OC_Config::getValue( "dbpassword", "" );
 
 		$errorlevel = error_reporting();
 		error_reporting($errorlevel & ~E_WARNING);
@@ -85,6 +91,18 @@ class OC_User_drupal extends OC_User_Backend {
 		$row = $result->fetch_assoc();
 
 		if ($row) {
+      if($this->drupal_global_group!=''){
+        if(!OC_Group::groupExists($this->drupal_global_group)){
+          OC_Group::createGroup($this->drupal_global_group);
+        }					
+        
+        if( OC_Group::inGroup( $uid, $this->drupal_global_group )){
+          // Do nothing					
+        }
+        else{
+          OC_Group::addToGroup( $uid, $this->drupal_global_group );
+        }
+      }
 			$this->setEmail($uid);
 			return $row['name'];
 		}
@@ -99,18 +117,54 @@ class OC_User_drupal extends OC_User_Backend {
 	 */
 	public function getUsers($search = '', $limit = NULL, $offset = NULL) {
 		$users = array();
+    $drupal_users = array();
+    $start=0;
+
+		if ($this->db->connect_errno) {
+			OC_Log::write('OC_User_drupal',
+					'OC_User_drupal, Failed to connect to drupal database: ' . $this->db->connect_error,
+					OC_Log::ERROR);
+			return $users;
+		}
 		if (!$this->db_conn) {
 			return $users;
 		}
 
 		$q = 'SELECT name FROM '. $this->drupal_db_prefix .'users WHERE status = 1';
 		$result = $this->db->query($q);
+		if (!$result) {
+			OC_Log::write('OC_User_drupal',
+					'OC_User_drupal, Failed query to drupal database, check your Drupal 6.x DB configuration',
+					OC_Log::ERROR);
+			return $users;
+		}
+		elseif ($result->num_rows==0) {
+			OC_Log::write('OC_User_drupal',
+					'OC_User_drupal, Failed query to drupal database, check your Drupal 6.x DB configuration',
+					OC_Log::ERROR);
+			return $users;
+		}
+
 		while ($row = $result->fetch_assoc()) {
 			if(!empty($row['name'])) {
-				$users[] = $row['name'];
+				$drupal_users[] = $row['name'];
 			}
 		}
-		sort($users);
+		sort($drupal_users);
+    $nb_users=sizeof($drupal_users);
+    $fin = $nb_users;
+    if($search==''){
+      if($offset!=NULL) $start=$offset;
+      if($limit!=NULL) $fin=$start+$limit; 
+    }
+    if($fin>$nb_users) $fin=$nb_users;
+      //echo $limit.'/'.$offset.'*';
+    for($i=$start ; $i<$fin ; $i++){
+      if($search=='' || strpos($drupal_users[$i],$search)>-1){
+        $users[] = $drupal_users[$i];
+      }
+    }
+
 		return $users;
 	}
 
